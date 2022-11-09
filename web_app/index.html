@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width">
+    <link rel=stylesheet href="./style.css">
+    <title>Robot Control</title>
+    <script language='javascript' type='text/javascript' src='ajaxutils.js'></script>
+    <script src="sliders.js"></script>
+    <script src="setup.js"></script>
+</head>
+
+<body onload='loadConfig()'>
+    <div id="camask" style="margin:20px auto;text-align:center">
+        <span class="btn" style="max-width:50vw;font-size:15px" onclick="camerapwr(true)">Turn Camera On</span>
+        <span class="btn" style="max-width:40px;font-size:15px;" onclick="camerapwr(false);">X</span>
+    </div>
+    <div id='camdiv' style='width:100%;max-width:100vw;text-align:center;display:none;position:relative'>
+        <img id='camimg' src="/cameraimg" style='height:50vh;max-width:100vw;min-height:50vh' onerror='reloadcamimg()'
+            onload='oncamimgload()'>
+        <div onclick="reloadcamimg()" class='cambtn'
+            style='position:absolute;top:5px;left:5px;font-size:20px;line-height:20px;background-color:#FFA50080'><img
+                src="./img/refresh.png"></div>
+        <div onclick="camerapwr(false)" class='cambtn'
+            style='position:absolute;top:5px;right:5px;font-size:20px;line-height:20px;background-color:#FFA50080'>
+            &times;</div>
+    </div>
+    <div id='tabbar' style='margin-bottom:5px;'>
+        <table style='width:100%;border-collapse:collapse;'>
+            <tr>
+                <td id='tab0' class='tab sel' onclick='tabsel(0)'>Drive</td>
+                <td id='tab1' class='tab' onclick='tabsel(1)'>Arm</td>
+            </tr>
+            <tr class='trhr'>
+                <td> </td>
+                <td> </td>
+            </tr>
+        </table>
+    </div>
+    <div class="errmsg" style="display:none" id="errmsg"></div>
+    <div id="namediv" style="position:fixed;bottom:0px;left:0px;z-index:199;font-weight:bold"
+        onclick="showTop('profiledlg');"></div>
+    <span class="logo" style="position:fixed;bottom:10px;right:10px;z-index:199" id="logo">
+        <img src='./img/AIRover_Logo.png' height='100px'/>
+        <img src='./img/AIRover.jpg' height='100px'/>
+    </span>    
+
+    <div id="shutdowndlg" class="dialog" style="display:none">
+        <div>
+            Shutdown?
+            <div class="bbtn" style="margin:20px;" onclick="homeandshutdown()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick="hide('shutdowndlg')">No</div>
+        </div>
+    </div>
+
+    <div id="rebootdlg" class="dialog" style="display:none">
+        <div>
+            <div style="display:none" id="reboottype"></div>
+            Reboot <span id="reboottypedisp"></span>?
+            <div class="bbtn" style="margin:20px;" onclick="rebootwifi()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick="hide('rebootdlg')">No</div>
+        </div>
+    </div>
+
+
+    <div class="power" id="power" style="display:none;">
+        <center>
+            <div style="align-items:center;">
+                <div onclick="showpower(0)" class='tbtn'
+                    style='float:right;margin-top:-20px;font-size:40px;line-height:30px;'>&times;</div>
+                <span style='font-size:40px;'>Power / Settings</span>
+                <hr />
+                <div id='motorsoffbtn' class='btn' onclick="pwr(false)">Motors Off</div>
+                <div id='motorsonbtn' class='btn' onclick="pwr(true)">Motors On</div>
+                <div class='btn' onclick="showrebootdlg('')">Reboot</div>
+                <div class='btn' onclick="showTop('shutdowndlg');">Shut Down</div>
+                <div>
+                    <div id='camonbtn' class='btn' onclick="camerapwr(true)">Camera On</div>
+                    <div id="camoffbtn" class="btn" onclick="camerapwr(false)">Camera Off</div>
+                </div>
+                <div class='btn' onclick="showpower(0)">Close</div>
+            </div>
+        </center>
+    </div>
+    <div class="position" style="display:none;" id="position">
+        <div onclick="hide('position')" class='tbtn'
+            style='float:right;margin-top:-20px;font-size:40px;line-height:30px'>&times;</div>
+        Arm Position
+        <table style='border-collapse:collapse;margin-top:20px;'>
+            <tr>
+                <td>swivel</td>
+                <td>a:</td>
+                <td><input type='number' size='5' placeholder='degrees' id="pos-a" /></td>
+            </tr>
+            <tr>
+                <td>shoulder</td>
+                <td>b:</td>
+                <td><input type='number' size='5' placeholder='degrees' id="pos-b" /></td>
+            </tr>
+            <tr>
+                <td>elbow</td>
+                <td>c:</td>
+                <td><input type='number' size='5' placeholder='degrees' id="pos-c" /></td>
+            </tr>
+            <tr>
+                <td>rotator</td>
+                <td>d:</td>
+                <td><input type='number' size='5' placeholder='degrees' id="pos-d" /></td>
+            </tr>
+            <tr>
+                <td>up down</td>
+                <td>e:</td>
+                <td><input type='number' size='5' placeholder='degrees' id="pos-e" /></td>
+            </tr>
+            <tr>
+                <td>gripper</td>
+                <td>f:</td>
+                <td><input type='number' size='5' placeholder='degrees' id="pos-f" /></td>
+            </tr>
+            <tr>
+                <td colspan='2'>Name:</td>
+                <td><input type='text' placeholder='optional e.g. highup' id="posname" /></td>
+            </tr>
+            <tr class='poscontrol' align='center' stye="text-align:center">
+                <td colspan='3'>
+                    <div class='bbtn' onclick='gotoposition()'>Go</div>
+                    <div class='bbtn' onclick='saveposition()'>Save</div>
+                    <div class='bbtn' style='float:right' onclick='useposition()'>Use</div>
+                </td>
+            </tr>
+        </table>
+        <hr />
+        Saved Positions
+        <div class="positions" id="positions">
+        </div>
+        <div class='bbtn' style="margin-top:20px" onclick='hideposition()'>Close</div>
+        <br />
+        <br />
+    </div>
+    <div style='display:none'>
+
+    </div>
+
+    </td>
+    </tr>
+    
+    </table>
+    </div>
+    </div>
+    <div id="drivecontrol">
+        <div id="arrow-keys">
+            <div class="key-layer">
+                <div id="up-arrow" class="arrow-div">
+                    &#8593
+                </div>
+            </div>
+            <div class="key-layer">
+                <div id="left-arrow" class="arrow-div">
+                    &#8592
+                </div>
+                <div id="space" class="arrow-div">
+
+                </div>
+                <div id="right-arrow" class="arrow-div">
+                    &#8594
+                </div>
+
+            </div>
+
+            <div class="key-layer">
+                <div id="down-arrow" class="arrow-div">
+                    &#8595
+                </div>
+            </div>
+        </div>
+        <p class="note">Hold the key to go one way and hold it + Shift to go the other way. (not implemented yet)</p>
+
+        <div id="arm-keys">
+            <div id="a-key" class="arrow-div">
+                A
+            </div>
+            <div id="b-key" class="arrow-div">
+                B
+            </div>
+            <div id="c-key" class="arrow-div">
+                C
+            </div>
+            <div id="d-key" class="arrow-div">
+                D
+            </div>
+            <div id="e-key" class="arrow-div">
+                E
+            </div>
+            <div id="f-key" class="arrow-div">
+                F
+            </div>
+        </div>
+
+    </div>
+    <div id="armcontrol" style="display:none">
+        <table style="margin:10px;width:calc(100% - 20px)">
+            <tr>
+                <td>
+                    <div onclick='armhome()' class='tbtn'><img src='./img/home.png' /></div>
+                </td>
+                <td onclick='showpower(1)' align='right' style='width:100%;'>
+                    <div class='tbtn'><img src='./img/power-black.png' /></div>
+                </td>
+            </tr>
+        </table>
+        <div id="armdiv">
+            <img id="arm" src="./img/RoverArm.jpg" style="margin-top:35vh">
+            <div id="sliders">
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="sliderx">X
+                        </div>
+                    </div>
+                    <span class="sicor">&srarr;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="slidery">Y
+                        </div>
+                    </div>
+                    <span class="sicor">&UpArrow;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange" id="slidersize">
+                        <div class="sliderbutton" id="sliderf">F
+                        </div>
+                    </div>
+                    <span class="sicor">&leftarrowtail;</span>
+                    <span class="sicor" style="right:5px;">&rightarrowtail;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="slidere">E
+                        </div>
+                    </div>
+                    <span class="sicor flipy">&cudarrl;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="sliderd">D
+                        </div>
+                    </div>
+                    <span class="sicor">&#10227;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="sliderc">C
+                        </div>
+                    </div>
+                    <span class="sicor flipy">&cudarrl;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="sliderb">B
+                        </div>
+                    </div>
+                    <span class="sicor flipy">&cudarrl;</span>
+                </div>
+                <div class="slider">
+                    <div class="sliderrange">
+                        <div class="sliderbutton" id="slidera">A
+                        </div>
+                    </div>
+                    <span class="sicor">&#10227;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="control.js"></script>
+</body >
+
+</html >

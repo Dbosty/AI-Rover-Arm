@@ -1,4 +1,4 @@
-class RobotConstants():
+class ArmConstants():
 
     WAIST_CHANNEL = 0
     WAIST_MIN_PULSE = 500
