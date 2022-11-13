@@ -300,6 +300,7 @@ function sendCommands() {
         drivecmd += ",";
     drivecmd += armcmd;
     //ex( direct + encodeURIComponent(drivecmd) );
+    //Error when runs, onResp not defined here
     execAjaxSimpleJson(direct + encodeURIComponent(drivecmd), "",
         onResp, networkError);
     //console.log( "sending " + drivecmd );
